@@ -1,5 +1,8 @@
 #!/bin/csh -f
 
+# download MOM6 code
+# git clone --recursive https://github.com/NOAA-GFDL/MOM6-examples.git MOM6-examples
+#
 set argv=(`getopt -u -o h -l platform:  --  $*`)
 while ("$argv[1]" != "--")
     switch ($argv[1])
@@ -14,7 +17,7 @@ set BASEDIR=`pwd`
 set MACHINE_ID=${platform}  
 set COMPILE_OPTION=${MACHINE_ID}-intel.mk
 
-set compile_FMS=0
+set compile_FMS=1
 set compile_ocean_only=1
 set compile_MOM6_SIS2=1
 ###############################
@@ -22,17 +25,16 @@ if ( ${compile_FMS} == 1 ) then
  echo "compile FMS library ..."
  cd $BASEDIR
  mkdir -p build/intel/shared/repro
- cp -r src/mkmf build/.
  cd build/intel/shared/repro
  if ( -f path_names ) then
   rm -f path_names
  endif  
 
  echo "generating file_paths ..."
- ../../../mkmf/bin/list_paths ../../../../src/FMS
+ ../../../../src/mkmf/bin/list_paths ../../../../src/FMS
 
  echo "generating makefile ..."
- ../../../mkmf/bin/mkmf -t ../../../mkmf/templates/${COMPILE_OPTION} -p libfms.a -c "-Duse_libMPI -Duse_netCDF -DSPMD" path_names
+ ../../../../src/mkmf/bin/mkmf -t ../../../../src/mkmf/templates/${COMPILE_OPTION} -p libfms.a -c "-Duse_libMPI -Duse_netCDF -DSPMD" path_names
 
  echo "compiling FMS library..."
  make NETCDF=4 REPRO=1 libfms.a -j
@@ -52,10 +54,10 @@ endif
  endif 
 
  echo "generating file_paths ..."
- ../../../mkmf/bin/list_paths ./ ../../../../src/MOM6/{config_src/dynamic,pkg/CVMix-src/src/shared,config_src/solo_driver,src/{*,*/*}}
+ ../../../../src/mkmf/bin/list_paths ./ ../../../../src/MOM6/{config_src/dynamic,pkg/CVMix-src/src/shared,config_src/solo_driver,src/{*,*/*}}
 
  echo "generating makefile ..."
- ../../../mkmf/bin/mkmf -t ../../../mkmf/templates/${COMPILE_OPTION} -o '-I../../shared/repro' -p 'MOM6 -L../../shared/repro  -lfms' -c "-Duse_libMPI -Duse_netcdf -DSPMD" path_names
+ ../../../../src/mkmf/bin/mkmf -t ../../../../src/mkmf/templates/${COMPILE_OPTION} -o '-I../../shared/repro' -p 'MOM6 -L../../shared/repro  -lfms' -c "-Duse_libMPI -Duse_netcdf -DSPMD" path_names
 
  echo "compiling MOM6 ocean only ..."
  make NETCDF=4 REPRO=1 MOM6 -j
@@ -77,10 +79,10 @@ endif
  endif 
 
  echo "generating file_paths ..."
- ../../../mkmf/bin/list_paths ./ ../../../../src/MOM6/config_src/{dynamic,coupled_driver} ../../../../src/MOM6/src/{*,*/*}/ ../../../../src/{atmos_null,coupler,land_null,ice_ocean_extras,icebergs,SIS2,FMS/coupler,FMS/include}
+ ../../../../src/mkmf/bin/list_paths ./ ../../../../src/MOM6/config_src/{dynamic,coupled_driver} ../../../../src/MOM6/src/{*,*/*}/ ../../../../src/{atmos_null,coupler,land_null,ice_ocean_extras,icebergs,SIS2,FMS/coupler,FMS/include}
 
  echo "generating makefile ..."
- ../../../mkmf/bin/mkmf -t ../../../mkmf/templates/${COMPILE_OPTION} -o '-I../../shared/repro' -p 'MOM6 -L../../shared/repro  -lfms' -c "-Duse_libMPI -Duse_netcdf -DSPMD" path_names
+ ../../../../src/mkmf/bin/mkmf -t ../../../../src/mkmf/templates/${COMPILE_OPTION} -o '-I../../shared/repro' -p MOM6 -l '-L../../shared/repro  -lfms' -c '-Duse_libMPI -Duse_netcdf -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -Duse_AM3_physics' path_names
 
  echo "compiling MOM6 ocean only ..."
  make NETCDF=4 REPRO=1 MOM6 -j
