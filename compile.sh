@@ -18,7 +18,7 @@ set MACHINE_ID=${platform}
 set COMPILE_OPTION=${MACHINE_ID}-intel.mk
 
 set compile_FMS=1
-set compile_ocean_only=1
+set compile_ocean_only=0
 set compile_MOM6_SIS2=1
 ###############################
 if ( ${compile_FMS} == 1 ) then 
@@ -38,11 +38,20 @@ if ( ${compile_FMS} == 1 ) then
 
  echo "compiling FMS library..."
  make NETCDF=4 REPRO=1 libfms.a -j
+ set result=$?
+ if ( $result != 0 ) then
+  echo "compiling FMS failed"
+  exit 8
+ else
+  echo "compiling FMS library successful"
+ endif 
+
  cp libfms.a lib_FMS.a
 
- echo "compiling FMS library done"
-
 endif 
+
+echo "====================================================="
+
 ###############################################
  if ( ${compile_ocean_only} == 1 ) then
  echo "compile ocean only ..."
@@ -61,13 +70,20 @@ endif
 
  echo "compiling MOM6 ocean only ..."
  make NETCDF=4 REPRO=1 MOM6 -j
+ set result=$?
+ if ( $result != 0 ) then
+  echo "compiling Ocean_only exectuable failed"
+  exit 8
+ else
+  echo "compiling Ocean_only exectuable successful"
+ endif
 
 # echo "generating libocean.a"
 # ar rv libocean.a *o
- 
- echo "compiling MOM6 ocean only done"
 
 endif 
+echo "=================================================="
+
 #######################################
  if ( ${compile_MOM6_SIS2} == 1 ) then
  echo "compiling MOM6-SIS2 ..."
@@ -86,6 +102,13 @@ endif
 
  echo "compiling MOM6 ocean only ..."
  make NETCDF=4 REPRO=1 MOM6 -j
+ set result=$?
+ if ( $result != 0 ) then
+  echo "compiling MOM6-SIS2 exectuable/lib failed"
+  exit 8
+ else
+  echo "compiling MOM6-SIS2 exectuable/lib successful"
+ endif 
 
  echo "generating lib_ocean.a"
  rm repro
