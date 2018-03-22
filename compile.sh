@@ -18,8 +18,9 @@ set MACHINE_ID=${platform}
 set COMPILE_OPTION=${MACHINE_ID}-intel.mk
 
 set compile_FMS=1
+set compile_MOM6_LIB=1
 set compile_ocean_only=0
-set compile_MOM6_SIS2=1
+set compile_MOM6_SIS2=0
 ###############################
 if ( ${compile_FMS} == 1 ) then 
  echo "compile FMS library ..."
@@ -51,6 +52,44 @@ if ( ${compile_FMS} == 1 ) then
 endif 
 
 echo "====================================================="
+###############################################
+if ( ${compile_MOM6_LIB} == 1 ) then
+ echo "compile MOM6 library ..."
+ cd $BASEDIR
+ mkdir -p build/intel/MOM6_LIB/repro
+ cd build/intel/MOM6_LIB/repro
+ if ( -f path_names ) then
+  rm -f path_names
+ endif
+
+ echo "generating file_paths ..."
+ ../../../../src/mkmf/bin/list_paths ../../../../src/MOM6/src/*/ ../../../../src/MOM6/src/*/*/ ../../../../src/MOM6/config_src/dynamic_symmetric/ ../../../../src/MOM6/config_src/coupled_driver/ 
+
+ echo "generating makefile ..."
+ ../../../../src/mkmf/bin/mkmf -t ../../../../src/mkmf/templates/${COMPILE_OPTION} -p lib_ocean.a -o '-I../../shared/repro' path_names
+
+ echo "compiling MOM6 library..."
+ make NETCDF=4 REPRO=1 lib_ocean.a 
+ set result=$?
+ if ( $result != 0 ) then
+  echo "compiling MOM6 failed"
+  exit 8
+ else
+  echo "compiling MOM6 library successful"
+ endif
+
+# ar rv lib_ocean.a *o
+ echo "compiling MOM6 library done"
+
+ # Install library and module files for NEMSAppbuilder
+   cd $BASEDIR
+   mkdir -p exec/${MACHINE_ID}/
+ # link to the library and module files
+   rm -rf exec/${MACHINE_ID}/lib_FMS exec/${MACHINE_ID}/lib_ocean
+   ln -s ${BASEDIR}/build/intel/shared/repro exec/${MACHINE_ID}/lib_FMS
+   ln -s ${BASEDIR}/build/intel/MOM6_LIB/repro exec/${MACHINE_ID}/lib_ocean
+
+endif
 
 ###############################################
  if ( ${compile_ocean_only} == 1 ) then
