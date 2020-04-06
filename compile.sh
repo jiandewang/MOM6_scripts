@@ -1,5 +1,5 @@
 #!/bin/csh -f
-
+# test
 # download MOM6 code
 # git clone --recursive https://github.com/NOAA-GFDL/MOM6-examples.git MOM6-examples
 #
